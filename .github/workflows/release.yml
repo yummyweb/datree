@@ -14,6 +14,10 @@ jobs:
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
         id: extract_branch
+      - name: Define release version
+        shell: bash
+        run: echo "##[set-output name=version;]$(bash scripts/define_release_version.sh ${{ github.event.inputs.release_candidate_version }})"
+        id: define_version
       - env:
           TRAVIS_API_TOKEN: ${{ secrets.TRAVIS_API_TOKEN }}
         run: |
@@ -41,7 +45,7 @@ jobs:
                 \"env\": {
                   \"global\": [
                     \"RELEASE_DATREE_PROD=true\",
-                    \"RELEASE_CANDIDATE_VERSION=${{ github.event.inputs.release_candidate_version }}\"
+                    \"RELEASE_VERSION=${{ steps.define_version.outputs.version }}\"
                   ]
                 }
               }
@@ -82,6 +86,6 @@ jobs:
         push: true
         tags: |
           ${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:latest
-          ${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.release_candidate_version }}
+          ${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ steps.define_version.outputs.version }}
         cache-from: type=gha
         cache-to: type=gha
